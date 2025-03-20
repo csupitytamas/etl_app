@@ -1,28 +1,48 @@
-const { app, BrowserWindow } = require('electron');
+import { app, BrowserWindow, Menu, ipcMain, MenuItemConstructorOptions } from "electron";
+import * as path from "path";
+import {createMenu} from "./menu";
 
 function createWindow() {
   try {
     const win = new BrowserWindow({
-      width: 400,
-      height: 300,
+      width: 800,
+      height: 600,
       webPreferences: {
-        nodeIntegration: true
+        nodeIntegration: false, // Ajánlott kikapcsolni
+        contextIsolation: true, // Biztonsági beállítás
+        preload: path.join(__dirname, "preload.js")
       }
     });
-    win.loadURL('http://localhost:3000');  // or load a file, depending on your setup
+
+    win.loadFile(path.join(__dirname, "../index.html"));
   } catch (error) {
-    console.error('Error creating Electron window:', error);
+    console.error("Hiba az Electron ablak létrehozásakor:", error);
   }
 }
 
-app.whenReady().then(createWindow);
+createMenu();
+ipcMain.on('open-etl-progress', () => {
+  const etlWindow = new BrowserWindow({
+    width: 600,
+    height: 400,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: path.join(__dirname, "preload.js")
+    }
+  });
 
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
+  etlWindow.loadFile(path.join(__dirname, "../src/components/ETLProgress.vue"));
 });
 
-app.on('quit', () => {
-  console.log('Electron app is quitting.');
+app.whenReady().then(() => {
+  createWindow();
+}).catch((error) => {
+  console.error("Hiba az alkalmazás indításakor:", error);
+});
+
+ipcMain.on('close-window', () => {
+  if (BrowserWindow.getAllWindows().length === 0) {
+    app.quit();
+  }
 });

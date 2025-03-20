@@ -6,6 +6,13 @@
     },
     {
       "path": "./tsconfig.app.json"
+    },
+    {
+      "compilerOptions": {
+        "typeRoots": ["./node_modules/@types", "./"], // Az electron.d.ts elérési útja
+        "types": ["electron"] // Electron típusok használata
+      },
+      "include": ["src/**/*.ts", "src/**/*.vue", "electron.d.ts"]
     }
   ]
 }
